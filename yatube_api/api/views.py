@@ -47,8 +47,8 @@ class FollowViewSet(viewsets.ModelViewSet):
         AuthorReadOnly
     )
     pagination_class = pagination.LimitOffsetPagination
-    filter_backends = (filters.SearchFilter)
     search_fields = ('following__username', 'user__username')
+    filter_backends = (filters.SearchFilter,)
 
     def get_queryset(self):
         return self.request.user.follower.all()

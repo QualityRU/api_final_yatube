@@ -1,53 +1,37 @@
+from rest_framework import filters
+
 from django.shortcuts import get_object_or_404
 
-from posts.models import Group, Post
-from rest_framework import filters, pagination, permissions, viewsets
-
-from .permissions import AuthorReadOnly
 from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
                           PostSerializer)
+from .viewsets import (CustumCreateListViewSet, CustumModelViewSet,
+                       CustumReadOnlyModelViewSet)
+
+from posts.models import Group, Post  # isort:skip
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(CustumModelViewSet):
     serializer_class = CommentSerializer
-    permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly,
-        AuthorReadOnly
-    )
-    pagination_class = pagination.LimitOffsetPagination
 
     def get_queryset(self):
-        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
+        post = get_object_or_404(Post, pk=self.kwargs.get("post_id"))
         return post.comments.all()
 
     def perform_create(self, serializer):
         serializer.save(
             author=self.request.user,
-            post=get_object_or_404(
-                Post,
-                pk=self.kwargs.get('post_id')
-            )
+            post=get_object_or_404(Post, pk=self.kwargs.get("post_id")),
         )
 
 
-class GroupViewSet(viewsets.ReadOnlyModelViewSet):
+class GroupViewSet(CustumReadOnlyModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
-    permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly,
-        AuthorReadOnly
-    )
-    pagination_class = pagination.LimitOffsetPagination
 
 
-class FollowViewSet(viewsets.ModelViewSet):
+class FollowViewSet(CustumCreateListViewSet):
     serializer_class = FollowSerializer
-    permission_classes = (
-        permissions.IsAuthenticated,
-        AuthorReadOnly
-    )
-    pagination_class = pagination.LimitOffsetPagination
-    search_fields = ('following__username', 'user__username')
+    search_fields = ("=following__username", "=user__username")
     filter_backends = (filters.SearchFilter,)
 
     def get_queryset(self):
@@ -57,14 +41,9 @@ class FollowViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class PostViewSet(viewsets.ModelViewSet):
+class PostViewSet(CustumModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
-    permission_classes = (
-        permissions.IsAuthenticatedOrReadOnly,
-        AuthorReadOnly
-    )
-    pagination_class = pagination.LimitOffsetPagination
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

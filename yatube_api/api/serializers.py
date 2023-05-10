@@ -1,6 +1,6 @@
-from posts.models import Comment, Follow, Group, Post, User
+from rest_framework import generics, relations, serializers
 
-from rest_framework import generics, relations, serializers  # isort:skip
+from posts.models import Comment, Follow, Group, Post, User  # isort:skip
 
 
 class CommentSerializer(serializers.ModelSerializer):
